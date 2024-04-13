@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
+#include <conio.h>
 
 #define ROWS 21
 #define COLS 21
@@ -108,13 +109,57 @@ void gen_new_maze()
     mirroredmaze[(ROWS-1)/2+1][0]=' ';
     mirroredmaze[(ROWS-1)/2+1][2*COLS-4]=' ';
 }
+int currentX = 1;
+int currentY = 1;
+void updateMaze() {
+    mirroredmaze[currentX][currentY] = '#';
+}
 
 int main() {
     initializeMaze();
     generateMaze(1, 1);
-    
     gen_new_maze();
-    printNewMaze();
+    
+    mirroredmaze[currentX][currentY] = '#';
+
+    while (1) {
+        system("cls");
+
+        printNewMaze();
+
+        char move = _getch();
+
+        switch (move) {
+            case 'w':
+                if (mirroredmaze[currentX-1][currentY] == ' ') {
+                    mirroredmaze[currentX][currentY] = ' ';
+                    currentX = currentX-1;
+                }
+                break;
+            case 's':
+                if (mirroredmaze[currentX+1][currentY] == ' ') {
+                    mirroredmaze[currentX][currentY] = ' ';
+                    currentX = currentX+1;
+                }
+                break;
+            case 'a':
+                if (mirroredmaze[currentX][currentY-1] == ' ') {
+                    mirroredmaze[currentX][currentY] = ' ';
+                    currentY = currentY-1;
+                }
+                break;
+            case 'd':
+                if (mirroredmaze[currentX][currentY+1] == ' ') {
+                    mirroredmaze[currentX][currentY] = ' ';
+                    currentY = currentY+1;
+                }
+                break;
+            case 27: 
+                exit(0);
+        }
+
+        updateMaze();
+    }
 
     return 0;
 }
