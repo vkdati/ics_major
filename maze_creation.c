@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
-#include <conio.h>
-
+#include <pthread.h>
+#include <unistd.h>
 
 #define ROWS 21
 #define COLS 21
@@ -13,8 +13,18 @@ char portal = 177;
 char maze[ROWS][COLS];
 char mirroredmaze[ROWS][2*COLS - 3];
 int score;
+int currentX = 1;
+int currentY = 1;
+char input; // Global variable to store input
+char last_move;
 
-
+void *input_thread(void *arg) {
+    while (1) {
+        
+        input = _getch(); // Get input character from the user
+    }
+    return NULL;
+}
 
 void initializeMaze() {
     for (int i = 0; i < ROWS; i++) {
@@ -24,16 +34,7 @@ void initializeMaze() {
     }
 }
 
-/*void printMaze() {
-    for (int i = 0; i < ROWS; i++) {
-        for (int j = 0; j < COLS; j++) {         //not really necessary
-            printf("%c ", maze[i][j]);
-        }
-        printf("\n");
-    }
-}*/
-
-void printNewMaze() {  //updated print statment with color codes
+void printNewMaze() { 
     const int bufferSize = 4096;
     char buffer[bufferSize];
     int index = 0;
@@ -64,7 +65,6 @@ int isValidMove(int x, int y) {
     return x >= 1 && x < ROWS-1 && y >= 1 && y < COLS-1 && maze[x][y] == wall;
 }
 
-
 int hasUnvisitedNeighbor(int x, int y) {
     int dx[] = {0, 0, 1, -1};
     int dy[] = {1, -1, 0, 0};
@@ -90,9 +90,8 @@ void shuffleDirections(int directions[], int size) {
     }
 }
 
-
 void generateMaze(int x, int y) {
-    int dx[] = {0, 0, 1, -1};
+   int dx[] = {0, 0, 1, -1};
     int dy[] = {1, -1, 0, 0};
 
     maze[x][y] = ' ';
@@ -111,9 +110,8 @@ void generateMaze(int x, int y) {
     }
 }
 
-void gen_new_maze()
-{
-    for(int row=0;row<ROWS;row++)
+void gen_new_maze() {
+   for(int row=0;row<ROWS;row++)
     {
         int count = COLS-2;
         for(int i=0;i<COLS-2;i++)
@@ -135,7 +133,7 @@ void gen_new_maze()
 //first quad
     int rand_row = rand()%((ROWS-1)/2+1); //min+rand()%(max-min +1)
     int rand_col = rand()%(COLS-1);
-    while(mirroredmaze[rand_row][rand_col]==wall)
+    while(mirroredmaze[rand_row][rand_col]==wall||mirroredmaze[rand_row][rand_col]==portal)
     {
      rand_row = rand()%((ROWS-1)/2+1); 
      rand_col = rand()%(COLS-1);
@@ -144,7 +142,7 @@ void gen_new_maze()
     //second quad
     rand_row = rand()%((ROWS-1)/2+1); 
     rand_col = (COLS-2)+rand()%((2*COLS-4)-(COLS-2)+1);
-    while(mirroredmaze[rand_row][rand_col]==wall)
+    while(mirroredmaze[rand_row][rand_col]==wall||mirroredmaze[rand_row][rand_col]==portal)
     {
      rand_row = rand()%((ROWS-1)/2+1); 
      rand_col = rand()%(COLS-1);
@@ -153,7 +151,7 @@ void gen_new_maze()
     //quad 3
     rand_row = (ROWS-1)/2+rand()%((ROWS-1)-(ROWS-1)/2 +1);
     rand_col = rand()%(COLS-1);
-     while(mirroredmaze[rand_row][rand_col]==wall)
+     while(mirroredmaze[rand_row][rand_col]==wall||mirroredmaze[rand_row][rand_col]==portal)
     {
     rand_row = (ROWS-1)/2+rand()%((ROWS-1)-(ROWS-1)/2 +1);
     rand_col = rand()%(COLS-1);
@@ -162,20 +160,14 @@ void gen_new_maze()
     //quad 4
     rand_row = (ROWS-1)/2+rand()%((ROWS-1)-(ROWS-1)/2 +1);
     rand_col = (COLS-2)+rand()%((2*COLS-4)-(COLS-2)+1);
-    while(mirroredmaze[rand_row][rand_col]==wall)
+    while(mirroredmaze[rand_row][rand_col]==wall||mirroredmaze[rand_row][rand_col]==portal)
     {
     rand_row = (ROWS-1)/2+rand()%((ROWS-1)-(ROWS-1)/2 +1);
     rand_col = (COLS-2)+rand()%((2*COLS-4)-(COLS-2)+1);
     }
     mirroredmaze[rand_row][rand_col] = bank;
-
-
-    
-    
-
 }
-int currentX = 1;
-int currentY = 1;
+
 void updateMaze() {
     if(mirroredmaze[currentX][currentY] ==  bank)
     {
@@ -194,73 +186,136 @@ int main() {
     system("cls"); 
     printNewMaze();
     score = 0;
-    //printf("%d",score);
-    
-
+    pthread_t input_tid;
+    pthread_create(&input_tid, NULL, input_thread, NULL); // Create input thread
+    last_move = input;
+    int validmove = 0;
     while (1) {
-       // system("cls");
+        Sleep(150);
+        char move = input; // Get the input from the global variable
 
-        //printNewMaze();
-
-        char move = _getch();
-
-        switch (move) {
+       switch (move) {
             case 'w':
-                if (mirroredmaze[currentX-1][currentY] == ' '||mirroredmaze[currentX-1][currentY]==bank||mirroredmaze[currentX-1][currentY]==portal) {
+                
+                if (mirroredmaze[currentX - 1][currentY] == ' ' || mirroredmaze[currentX - 1][currentY] == bank || mirroredmaze[currentX - 1][currentY] == portal) {
                     mirroredmaze[currentX][currentY] = ' ';
-                    currentX = currentX-1;
+                    currentX = currentX - 1;
                     updateMaze();
-                    system("cls"); //updated so that cli does not refresh everytime
-
-                 printNewMaze();
+                    system("cls"); 
+                    printNewMaze();
+                    validmove = 1;
+                    last_move = 'w'; // Update last move
+                }
+                else{
+                    validmove =0;
                 }
                 break;
             case 's':
-                if (mirroredmaze[currentX+1][currentY] == ' '||mirroredmaze[currentX+1][currentY] ==bank||mirroredmaze[currentX+1][currentY]==portal) {
+                
+                if (mirroredmaze[currentX + 1][currentY] == ' ' || mirroredmaze[currentX + 1][currentY] == bank || mirroredmaze[currentX + 1][currentY] == portal) {
                     mirroredmaze[currentX][currentY] = ' ';
-                    currentX = currentX+1;
+                    currentX = currentX + 1;
                     updateMaze();
                     system("cls");
-
-                 printNewMaze();
+                    printNewMaze();
+                     validmove = 1;
+                     last_move = 's'; // Update last move
+                }
+                else{
+                    validmove =0;
                 }
                 break;
             case 'a':
-                if (mirroredmaze[currentX][currentY-1] == ' '||mirroredmaze[currentX][currentY-1] ==bank||mirroredmaze[currentX][currentY-1]==portal) {
+                
+                if (mirroredmaze[currentX][currentY - 1] == ' ' || mirroredmaze[currentX][currentY - 1] == bank || mirroredmaze[currentX][currentY - 1] == portal) {
                     mirroredmaze[currentX][currentY] = ' ';
-                    currentY = currentY-1;
-                    if(currentY <= 0)
-                    {
-                        currentY = 2*COLS - 5; //to move across border correctly
+                    currentY = currentY - 1;
+                    if (currentY <= 0) {
+                        currentY = 2 * COLS - 5; // To move across border correctly
                     }
                     updateMaze();
                     system("cls");
-
-                printNewMaze();
+                    printNewMaze();
+                     validmove = 1;
+                     last_move = 'a'; // Update last move
+                }
+                else{
+                    validmove =0;
                 }
                 break;
             case 'd':
-                if (mirroredmaze[currentX][currentY+1] == ' '||mirroredmaze[currentX][currentY+1] == bank||mirroredmaze[currentX][currentY+1]==portal) {
+                
+                if (mirroredmaze[currentX][currentY + 1] == ' ' || mirroredmaze[currentX][currentY + 1] == bank || mirroredmaze[currentX][currentY + 1] == portal) {
                     mirroredmaze[currentX][currentY] = ' ';
-                    currentY = currentY+1;
-                    if(currentY >= 2*COLS-4)
-                    {
+                    currentY = currentY + 1;
+                    if (currentY >= 2 * COLS - 4) {
                         currentY = 1;
                     }
                     updateMaze();
                     system("cls");
-                    
-
-                printNewMaze();
+                    printNewMaze();
+                     validmove = 1;
+                     last_move = 'd'; // Update last move
+                }
+                else{
+                    validmove =0;
                 }
                 break;
-            case 27: 
-            printf("%d",score); //debug statement
+            case 27: // Escape key
+                printf("%d", score); // Debug statement
                 exit(0);
         }
 
-        
+        // If no new input, continue in the last movement direction
+        if(validmove==0)
+        {
+        switch (last_move) {
+            case 'w':
+                if (mirroredmaze[currentX - 1][currentY] == ' ' || mirroredmaze[currentX - 1][currentY] == bank || mirroredmaze[currentX - 1][currentY] == portal) {
+                    mirroredmaze[currentX][currentY] = ' ';
+                    currentX = currentX - 1;
+                    updateMaze();
+                    system("cls"); 
+                    printNewMaze();
+                }
+                break;
+            case 's':
+                if (mirroredmaze[currentX + 1][currentY] == ' ' || mirroredmaze[currentX + 1][currentY] == bank || mirroredmaze[currentX + 1][currentY] == portal) {
+                    mirroredmaze[currentX][currentY] = ' ';
+                    currentX = currentX + 1;
+                    updateMaze();
+                    system("cls");
+                    printNewMaze();
+                }
+                break;
+            case 'a':
+                if (mirroredmaze[currentX][currentY - 1] == ' ' || mirroredmaze[currentX][currentY - 1] == bank || mirroredmaze[currentX][currentY - 1] == portal) {
+                    mirroredmaze[currentX][currentY] = ' ';
+                    currentY = currentY - 1;
+                    if (currentY <= 0) {
+                        currentY = 2 * COLS - 5; // To move across border correctly
+                    }
+                    updateMaze();
+                    system("cls");
+                    printNewMaze();
+                }
+                break;
+            case 'd':
+                if (mirroredmaze[currentX][currentY + 1] == ' ' || mirroredmaze[currentX][currentY + 1] == bank || mirroredmaze[currentX][currentY + 1] == portal) {
+                    mirroredmaze[currentX][currentY] = ' ';
+                    currentY = currentY + 1;
+                    if (currentY >= 2 * COLS - 4) {
+                        currentY = 1;
+                    }
+                    updateMaze();
+                    system("cls");
+                    printNewMaze();
+                }
+                break;
+        }
+        }
     }
 
+    pthread_join(input_tid, NULL); // Wait for the input thread to finish
     return 0;
 }
