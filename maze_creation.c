@@ -8,7 +8,8 @@
 #define ROWS 21
 #define COLS 21
 char wall = 254;
-char bank = 177;
+char bank = '$'; 
+char portal = 177;
 char maze[ROWS][COLS];
 char mirroredmaze[ROWS][2*COLS - 3];
 int score;
@@ -23,21 +24,39 @@ void initializeMaze() {
     }
 }
 
-void printMaze() {
+/*void printMaze() {
     for (int i = 0; i < ROWS; i++) {
-        for (int j = 0; j < COLS; j++) {
+        for (int j = 0; j < COLS; j++) {         //not really necessary
             printf("%c ", maze[i][j]);
         }
         printf("\n");
     }
-}
-void printNewMaze()
-{
+}*/
+
+void printNewMaze() {  //updated print statment with color codes
+    const int bufferSize = 4096;
+    char buffer[bufferSize];
+    int index = 0;
+
     for (int i = 0; i < ROWS; i++) {
         for (int j = 0; j < 2*COLS-3; j++) {
-            printf("%c ", mirroredmaze[i][j]);
+            if (mirroredmaze[i][j] == wall) {
+                index += sprintf(buffer + index, "\033[0;31m%c\033[0m ", mirroredmaze[i][j]);
+            } else if (mirroredmaze[i][j] == bank) {
+                index += sprintf(buffer + index, "\033[0;32m%c\033[0m ", mirroredmaze[i][j]);
+            } else {
+                index += sprintf(buffer + index, "%c ", mirroredmaze[i][j]);
+            }
+
+            if (index >= bufferSize - 100) {
+                fwrite(buffer, 1, index, stdout);
+                index = 0;
+            }
         }
-        printf("\n");
+        buffer[index++] = '\n';
+    }
+    if (index > 0) {
+        fwrite(buffer, 1, index, stdout);
     }
 }
 
@@ -107,12 +126,12 @@ void gen_new_maze()
             count--;
         }
     }
-    mirroredmaze[(ROWS-1)/2][0]=' ';
-    mirroredmaze[(ROWS-1)/2][2*COLS-4]=' ';
-    mirroredmaze[(ROWS-1)/2-1][0]=' ';
-    mirroredmaze[(ROWS-1)/2-1][2*COLS-4]=' ';
-    mirroredmaze[(ROWS-1)/2+1][0]=' ';
-    mirroredmaze[(ROWS-1)/2+1][2*COLS-4]=' ';
+    mirroredmaze[(ROWS-1)/2][0]=portal;
+    mirroredmaze[(ROWS-1)/2][2*COLS-4]=portal;
+    mirroredmaze[(ROWS-1)/2-1][0]=portal;
+    mirroredmaze[(ROWS-1)/2-1][2*COLS-4]=portal;  
+    mirroredmaze[(ROWS-1)/2+1][0]=portal;
+    mirroredmaze[(ROWS-1)/2+1][2*COLS-4]=portal;
 //first quad
     int rand_row = rand()%((ROWS-1)/2+1); //min+rand()%(max-min +1)
     int rand_col = rand()%(COLS-1);
@@ -187,7 +206,7 @@ int main() {
 
         switch (move) {
             case 'w':
-                if (mirroredmaze[currentX-1][currentY] == ' '||mirroredmaze[currentX-1][currentY]==bank) {
+                if (mirroredmaze[currentX-1][currentY] == ' '||mirroredmaze[currentX-1][currentY]==bank||mirroredmaze[currentX-1][currentY]==portal) {
                     mirroredmaze[currentX][currentY] = ' ';
                     currentX = currentX-1;
                     updateMaze();
@@ -197,7 +216,7 @@ int main() {
                 }
                 break;
             case 's':
-                if (mirroredmaze[currentX+1][currentY] == ' '||mirroredmaze[currentX+1][currentY] ==bank) {
+                if (mirroredmaze[currentX+1][currentY] == ' '||mirroredmaze[currentX+1][currentY] ==bank||mirroredmaze[currentX+1][currentY]==portal) {
                     mirroredmaze[currentX][currentY] = ' ';
                     currentX = currentX+1;
                     updateMaze();
@@ -207,7 +226,7 @@ int main() {
                 }
                 break;
             case 'a':
-                if (mirroredmaze[currentX][currentY-1] == ' '||mirroredmaze[currentX][currentY-1] ==bank) {
+                if (mirroredmaze[currentX][currentY-1] == ' '||mirroredmaze[currentX][currentY-1] ==bank||mirroredmaze[currentX][currentY-1]==portal) {
                     mirroredmaze[currentX][currentY] = ' ';
                     currentY = currentY-1;
                     if(currentY <= 0)
@@ -221,7 +240,7 @@ int main() {
                 }
                 break;
             case 'd':
-                if (mirroredmaze[currentX][currentY+1] == ' '||mirroredmaze[currentX][currentY+1] == bank) {
+                if (mirroredmaze[currentX][currentY+1] == ' '||mirroredmaze[currentX][currentY+1] == bank||mirroredmaze[currentX][currentY+1]==portal) {
                     mirroredmaze[currentX][currentY] = ' ';
                     currentY = currentY+1;
                     if(currentY >= 2*COLS-4)
