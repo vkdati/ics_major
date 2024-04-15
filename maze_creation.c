@@ -11,6 +11,8 @@
 #define COLS 21
 #define MAX_BOMBS 100 // Maximum number of bombs
 #define BOMB_TIMER 3 // Time in seconds before bomb detonates
+#define MAX_COPS 4 //max num of cops
+#define COP_TIMER 1.5 //time in seconds before cop spawns 
 
 char wall = 254;
 char bank = '$';
@@ -24,13 +26,24 @@ int currentY = 1;
 char input; // Global variable to store input
 char last_move;
 int tick = 0; //debug, remove later
+char cop = 88;
 
 typedef struct {
     int x;
     int y;
     time_t placed_time;
 } Bomb;
+typedef struct{
+    int x;
+    int y;
+    time_t spawn_time;
+    int has_spawned;
+    char dir;
+    char moving;
+}Cop;
 
+Cop cops[MAX_COPS];
+int num_cops = 0;
 Bomb bombs[MAX_BOMBS];
 int num_bombs = 0;
 
@@ -62,9 +75,13 @@ void printNewMaze() {
                 index += sprintf(buffer + index, "\033[0;32m%c\033[0m ", mirroredmaze[i][j]);
             } else if (mirroredmaze[i][j] == bomb) {
                 index += sprintf(buffer + index, "\033[0;33m%c\033[0m ", mirroredmaze[i][j]);
-            } else {
+            }else if (mirroredmaze[i][j]==cop){
+                index += sprintf(buffer + index, "\033[0;34m%c\033[0m ", mirroredmaze[i][j]);
+            }
+             else {
                 index += sprintf(buffer + index, "%c ", mirroredmaze[i][j]);
             }
+            
 
             if (index >= bufferSize - 100) {
                 fwrite(buffer, 1, index, stdout);
@@ -234,12 +251,39 @@ void detonateBomb(int x, int y) {
     }
 }
 
+void spawnCop(int x, int y)
+{
+    if (mirroredmaze[x][y] != wall && mirroredmaze[x][y] != portal) {
+        
 
+        // Add the cop to the list
+        cops[num_cops].x = x;
+        cops[num_cops].y = y;
+        cops[num_cops].spawn_time = time(NULL);
+        cops[num_cops].has_spawned = 0;
+        num_cops++;
+    }
+}
 void updateMaze() {
     if (mirroredmaze[currentX][currentY] == bank) {
         score++;
+        spawnCop(currentX,currentY);
+
     }
     mirroredmaze[currentX][currentY] = '#';
+}
+void checkCopSpawnTimer()
+{
+    time_t current_time = time(NULL);
+    for(int i = 0;i<num_cops;i++)
+    {
+        double elapsed_time = difftime(current_time,cops[i].spawn_time);
+        if(elapsed_time >= COP_TIMER && cops[i].has_spawned != 1)
+        {
+            cops[i].has_spawned = 1;
+            mirroredmaze[cops[i].x][cops[i].y] = cop;
+        }
+    }
 }
 
 void checkBombTimers() {
@@ -277,6 +321,7 @@ int main() {
         //tick++;
         // Check bomb timers
         checkBombTimers();
+        checkCopSpawnTimer();
         Sleep(150);
         char move = input; // Get the input from the global variable
 
