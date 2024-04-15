@@ -6,6 +6,8 @@
 #include <unistd.h>
 #include <windows.h>
 #include <conio.h>
+#include <math.h>
+#include <limits.h>
 
 #define ROWS 21
 #define COLS 21
@@ -13,6 +15,8 @@
 #define BOMB_TIMER 3 // Time in seconds before bomb detonates
 #define MAX_COPS 4 //max num of cops
 #define COP_TIMER 1.5 //time in seconds before cop spawns 
+
+
 
 char wall = 254;
 char bank = '$';
@@ -282,10 +286,130 @@ void checkCopSpawnTimer()
         {
             cops[i].has_spawned = 1;
             mirroredmaze[cops[i].x][cops[i].y] = cop;
+
+        }
+        if(cops[i].has_spawned == 1)
+        {
+            copChaseAI(i);
         }
     }
 }
+float distanceFromPlayer(int x, int y)
+{
+    int xsquar = (x - currentX)*(x - currentX);
+    int ysquar = (y - currentY)*(y - currentY);
+    float distance = sqrt(xsquar + ysquar);
+    return distance;
 
+}
+char dirToMove(int i)
+{
+
+    float distw = distanceFromPlayer(cops[i].x-1,cops[i].y);
+    float dists = distanceFromPlayer(cops[i].x+1,cops[i].y);
+    float dista = distanceFromPlayer(cops[i].x,cops[i].y-1);
+    float distd = distanceFromPlayer(cops[i].x,cops[i].y+1);
+        if (mirroredmaze[cops[i].x - 1][cops[i].y] == wall ) {
+                    distw = INT_MAX;
+                }
+                
+                if (mirroredmaze[cops[i].x + 1][cops[i].y] == wall ) {
+                    
+                    dists = INT_MAX;
+                }
+                
+                
+                if (mirroredmaze[cops[i].x][cops[i].y - 1] == wall) {
+                    dista = INT_MAX;
+                }
+               
+               
+                if (mirroredmaze[cops[i].x][cops[i].y + 1] == wall ) {
+                    
+                   distd = INT_MAX;
+                }
+    int min = distw;
+    char min_char = 'w';
+    
+    if (dists < min) {
+        min = dists;
+        min_char = 's';
+    }
+    if (dista < min) {
+        min = dista;
+        min_char = 'a';
+    }
+    if (distd < min) {
+        min = distd;
+        min_char = 'd';
+    }
+    
+    return min_char;
+
+}
+void copChaseAI(int i)
+{
+    
+    int hasmoved = 0;
+    cops[i].dir = dirToMove(i);
+
+    switch(cops[i].dir)
+    {
+    case 'w':
+                if (mirroredmaze[cops[i].x - 1][cops[i].y] == ' ' || mirroredmaze[cops[i].x - 1][cops[i].y] == bank || mirroredmaze[cops[i].x - 1][cops[i].y] == portal) {
+                    mirroredmaze[cops[i].x][cops[i].y] = ' ';
+                    cops[i].x = cops[i].x - 1;
+                    hasmoved = 1;
+                    mirroredmaze[cops[i].x][cops[i].y] = cop;
+                    
+                    
+                }
+                
+                
+                break;
+            case 's':
+                if (mirroredmaze[cops[i].x + 1][cops[i].y] == ' ' || mirroredmaze[cops[i].x + 1][cops[i].y] == bank || mirroredmaze[cops[i].x + 1][cops[i].y] == portal) {
+                    mirroredmaze[cops[i].x][cops[i].y] = ' ';
+                    cops[i].x = cops[i].x +1;
+                    hasmoved = 1;
+                    mirroredmaze[cops[i].x][cops[i].y] = cop;
+                }
+                
+                break;
+            case 'a':
+                if (mirroredmaze[cops[i].x][cops[i].y - 1] == ' ' || mirroredmaze[cops[i].x][cops[i].y - 1] == bank || mirroredmaze[cops[i].x][cops[i].y - 1] == portal) {
+                    mirroredmaze[cops[i].x][cops[i].y] = ' ';
+                    cops[i].y = cops[i].y - 1;
+                    if (cops[i].y <= 0) {
+                        cops[i].y = 2 * COLS - 5; // To move across border correctly
+                    }
+                    //updateMaze();
+                        //system("cls");
+                        //printNewMaze();
+                    hasmoved = 1;
+                    mirroredmaze[cops[i].x][cops[i].y] = cop;
+                    
+                }
+               
+                break;
+            case 'd':
+                if (mirroredmaze[cops[i].x][cops[i].y + 1] == ' ' || mirroredmaze[cops[i].x][cops[i].y + 1] == bank || mirroredmaze[cops[i].x][cops[i].y + 1] == portal) {
+                    mirroredmaze[cops[i].x][cops[i].y] = ' ';
+                    cops[i].y = cops[i].y + 1;
+                    if (cops[i].y >= 2 * COLS - 4) {
+                        cops[i].y = 1;
+                    }
+                    hasmoved = 1;
+                    mirroredmaze[cops[i].x][cops[i].y] = cop;
+                }
+    }
+    if(hasmoved==0)
+    {
+
+    }
+    //cops[i].moving = cops[i].dir;
+    
+}
 void checkBombTimers() {
     time_t current_time = time(NULL);
     for (int i = 0; i < num_bombs; i++) {
@@ -310,7 +434,7 @@ int main() {
     generateMaze(1, 1);
     gen_new_maze();
     mirroredmaze[currentX][currentY] = '#';
-    system("cls");
+   system("cls");
     printNewMaze();
     score = 0;
     pthread_t input_tid;
