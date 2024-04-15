@@ -9,7 +9,7 @@
 
 #define ROWS 21
 #define COLS 21
-#define MAX_BOMBS 10 // Maximum number of bombs
+#define MAX_BOMBS 100 // Maximum number of bombs
 #define BOMB_TIMER 3 // Time in seconds before bomb detonates
 
 char wall = 254;
@@ -222,7 +222,10 @@ void detonateBomb(int x, int y) {
                     // Detonate neighboring bomb recursively
                     detonateBomb(newX, newY);
                 } else {
+                    if(mirroredmaze[newX][newY]!=bank) //should not blow up bank
+                    {
                     mirroredmaze[newX][newY] = ' '; // Clear space
+                    }
                 }
             }
         }
@@ -285,6 +288,8 @@ int main() {
                     validmove = 1;
                     last_move = 'w'; // Update last move
                 }
+                
+                
                 break;
             case 's':
                 if (mirroredmaze[currentX + 1][currentY] == ' ' || mirroredmaze[currentX + 1][currentY] == bank || mirroredmaze[currentX + 1][currentY] == portal) {
@@ -296,6 +301,7 @@ int main() {
                     validmove = 1;
                     last_move = 's'; // Update last move
                 }
+                
                 break;
             case 'a':
                 if (mirroredmaze[currentX][currentY - 1] == ' ' || mirroredmaze[currentX][currentY - 1] == bank || mirroredmaze[currentX][currentY - 1] == portal) {
@@ -310,6 +316,7 @@ int main() {
                     validmove = 1;
                     last_move = 'a'; // Update last move
                 }
+               
                 break;
             case 'd':
                 if (mirroredmaze[currentX][currentY + 1] == ' ' || mirroredmaze[currentX][currentY + 1] == bank || mirroredmaze[currentX][currentY + 1] == portal) {
@@ -324,6 +331,7 @@ int main() {
                     validmove = 1;
                     last_move = 'd'; // Update last move
                 }
+                
                 break;
             case 'b':
                 placeBombBehindPlayer();
