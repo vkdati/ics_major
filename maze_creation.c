@@ -23,6 +23,7 @@ int currentX = 1;
 int currentY = 1;
 char input; // Global variable to store input
 char last_move;
+int tick = 0; //debug, remove later
 
 typedef struct {
     int x;
@@ -75,6 +76,7 @@ void printNewMaze() {
     if (index > 0) {
         fwrite(buffer, 1, index, stdout);
     }
+    //printf("%d",tick);
 }
 
 int isValidMove(int x, int y) {
@@ -258,6 +260,7 @@ void checkBombTimers() {
 }
 
 int main() {
+    tick = 0;
     initializeMaze();
     srand((int)time(NULL)); // Seeding
     generateMaze(1, 1);
@@ -271,6 +274,9 @@ int main() {
     last_move = ' '; // Initialize last move
 
     while (1) {
+        //tick++;
+        // Check bomb timers
+        checkBombTimers();
         Sleep(150);
         char move = input; // Get the input from the global variable
 
@@ -282,9 +288,7 @@ int main() {
                 if (mirroredmaze[currentX - 1][currentY] == ' ' || mirroredmaze[currentX - 1][currentY] == bank || mirroredmaze[currentX - 1][currentY] == portal) {
                     mirroredmaze[currentX][currentY] = ' ';
                     currentX = currentX - 1;
-                    updateMaze();
-                    system("cls");
-                    printNewMaze();
+                    
                     validmove = 1;
                     last_move = 'w'; // Update last move
                 }
@@ -295,9 +299,9 @@ int main() {
                 if (mirroredmaze[currentX + 1][currentY] == ' ' || mirroredmaze[currentX + 1][currentY] == bank || mirroredmaze[currentX + 1][currentY] == portal) {
                     mirroredmaze[currentX][currentY] = ' ';
                     currentX = currentX + 1;
-                    updateMaze();
-                    system("cls");
-                    printNewMaze();
+                    //updateMaze();
+                        //system("cls");
+                        //printNewMaze();
                     validmove = 1;
                     last_move = 's'; // Update last move
                 }
@@ -310,9 +314,9 @@ int main() {
                     if (currentY <= 0) {
                         currentY = 2 * COLS - 5; // To move across border correctly
                     }
-                    updateMaze();
-                    system("cls");
-                    printNewMaze();
+                    //updateMaze();
+                        //system("cls");
+                        //printNewMaze();
                     validmove = 1;
                     last_move = 'a'; // Update last move
                 }
@@ -325,9 +329,9 @@ int main() {
                     if (currentY >= 2 * COLS - 4) {
                         currentY = 1;
                     }
-                    updateMaze();
-                    system("cls");
-                    printNewMaze();
+                    //updateMaze();
+                        //system("cls");
+                        //printNewMaze();
                     validmove = 1;
                     last_move = 'd'; // Update last move
                 }
@@ -335,35 +339,38 @@ int main() {
                 break;
             case 'b':
                 placeBombBehindPlayer();
-                updateMaze();
-                system("cls");
-                printNewMaze();
+                //updateMaze();
+                        //system("cls");
+                        //printNewMaze();
                 validmove = 1;
                 break;
             case 27: // Escape key
                 printf("%d", score); // Debug statement
                 exit(0);
         }
+                        
 
         // If the move was invalid, continue in the last movement direction
         if (validmove == 0) {
+            // Check bomb timers
+        checkBombTimers();
             switch (last_move) {
                 case 'w':
                     if (mirroredmaze[currentX - 1][currentY] == ' ' || mirroredmaze[currentX - 1][currentY] == bank || mirroredmaze[currentX - 1][currentY] == portal) {
                         mirroredmaze[currentX][currentY] = ' ';
                         currentX = currentX - 1;
-                        updateMaze();
-                        system("cls");
-                        printNewMaze();
+                        //updateMaze();
+                        //system("cls");
+                        //printNewMaze();
                     }
                     break;
                 case 's':
                     if (mirroredmaze[currentX + 1][currentY] == ' ' || mirroredmaze[currentX + 1][currentY] == bank || mirroredmaze[currentX + 1][currentY] == portal) {
                         mirroredmaze[currentX][currentY] = ' ';
                         currentX = currentX + 1;
-                        updateMaze();
-                        system("cls");
-                        printNewMaze();
+                       // updateMaze();
+                        //system("cls");
+                        //printNewMaze();
                     }
                     break;
                 case 'a':
@@ -373,9 +380,9 @@ int main() {
                         if (currentY <= 0) {
                             currentY = 2 * COLS - 5; // To move across border correctly
                         }
-                        updateMaze();
-                        system("cls");
-                        printNewMaze();
+                        //updateMaze();
+                        //system("cls");
+                        //printNewMaze();
                     }
                     break;
                 case 'd':
@@ -385,16 +392,20 @@ int main() {
                         if (currentY >= 2 * COLS - 4) {
                             currentY = 1;
                         }
+                        //updateMaze();
+                        //system("cls");
+                        //printNewMaze();
+                    }
+                    break;
+
+            }
+                        
+        }
                         updateMaze();
                         system("cls");
                         printNewMaze();
-                    }
-                    break;
-            }
-        }
 
-        // Check bomb timers
-        checkBombTimers();
+       
     }
 
     pthread_join(input_tid, NULL); // Wait for the input thread to finish
