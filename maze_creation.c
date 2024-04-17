@@ -8,6 +8,7 @@
 #include <conio.h>
 #include <math.h>
 #include <limits.h>
+#include <float.h>
 
 #define ROWS 21
 #define COLS 21
@@ -43,7 +44,7 @@ typedef struct{
     time_t spawn_time;
     int has_spawned;
     char dir;
-    char moving;
+    char prevdir;
 }Cop;
 
 Cop cops[MAX_COPS];
@@ -299,6 +300,8 @@ float distanceFromPlayer(int x, int y)
     int xsquar = (x - currentX)*(x - currentX);
     int ysquar = (y - currentY)*(y - currentY);
     float distance = sqrt(xsquar + ysquar);
+    
+    //printf("%f\n",distance); //debug
     return distance;
 
 }
@@ -310,25 +313,25 @@ char dirToMove(int i)
     float dista = distanceFromPlayer(cops[i].x,cops[i].y-1);
     float distd = distanceFromPlayer(cops[i].x,cops[i].y+1);
         if (mirroredmaze[cops[i].x - 1][cops[i].y] == wall ) {
-                    distw = INT_MAX;
+                    distw = 3.402823466e+38F;
                 }
                 
                 if (mirroredmaze[cops[i].x + 1][cops[i].y] == wall ) {
                     
-                    dists = INT_MAX;
+                    dists = 3.402823466e+38F;
                 }
                 
                 
                 if (mirroredmaze[cops[i].x][cops[i].y - 1] == wall) {
-                    dista = INT_MAX;
+                    dista = 3.402823466e+38F;
                 }
                
                
                 if (mirroredmaze[cops[i].x][cops[i].y + 1] == wall ) {
                     
-                   distd = INT_MAX;
+                   distd = 3.402823466e+38F;
                 }
-    int min = distw;
+    float min = distw; //fixed the bug lmfao
     char min_char = 'w';
     
     if (dists < min) {
@@ -343,7 +346,7 @@ char dirToMove(int i)
         min = distd;
         min_char = 'd';
     }
-    
+   // printf("%d %c",min,min_char); //debiug
     return min_char;
 
 }
@@ -352,6 +355,39 @@ void copChaseAI(int i)
     
     int hasmoved = 0;
     cops[i].dir = dirToMove(i);
+    if((cops[i].dir=='w'&&cops[i].prevdir=='s')||(cops[i].dir=='s'&&cops[i].prevdir=='w')||(cops[i].dir == 'a' && cops[i].prevdir == 'd') || (cops[i].dir == 'd' && cops[i].prevdir == 'a'))
+    {
+        switch(cops[i].prevdir)
+    {
+    case 'w':
+                if (mirroredmaze[cops[i].x - 1][cops[i].y] == ' ' || mirroredmaze[cops[i].x - 1][cops[i].y] == bank || mirroredmaze[cops[i].x - 1][cops[i].y] == portal) {
+                  
+                    cops[i].dir = cops[i].prevdir;
+                    
+                }
+                
+                
+                break;
+            case 's':
+                if (mirroredmaze[cops[i].x + 1][cops[i].y] == ' ' || mirroredmaze[cops[i].x + 1][cops[i].y] == bank || mirroredmaze[cops[i].x + 1][cops[i].y] == portal) {
+                   cops[i].dir = cops[i].prevdir;
+                }
+                
+                break;
+            case 'a':
+                if (mirroredmaze[cops[i].x][cops[i].y - 1] == ' ' || mirroredmaze[cops[i].x][cops[i].y - 1] == bank || mirroredmaze[cops[i].x][cops[i].y - 1] == portal) {
+                   cops[i].dir = cops[i].prevdir;
+                    
+                }
+               
+                break;
+            case 'd':
+                if (mirroredmaze[cops[i].x][cops[i].y + 1] == ' ' || mirroredmaze[cops[i].x][cops[i].y + 1] == bank || mirroredmaze[cops[i].x][cops[i].y + 1] == portal) {
+                    cops[i].dir = cops[i].prevdir;
+                }
+    }
+        //cops[i].dir = cops[i].prevdir;
+    }
 
     switch(cops[i].dir)
     {
@@ -403,12 +439,13 @@ void copChaseAI(int i)
                     mirroredmaze[cops[i].x][cops[i].y] = cop;
                 }
     }
+    //printf("trying to move in :%c",cops[i].dir); //debug line
     if(hasmoved==0)
     {
 
     }
     //cops[i].moving = cops[i].dir;
-    
+    cops[i].prevdir = cops[i].dir;
 }
 void checkBombTimers() {
     time_t current_time = time(NULL);
