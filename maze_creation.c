@@ -32,6 +32,10 @@ char input; // Global variable to store input
 char last_move;
 int tick = 0; //debug, remove later
 char cop = 88;
+char ammo = 235;
+char player = 258;
+int currBombs = 4;
+
 
 typedef struct {
     int x;
@@ -71,7 +75,17 @@ void printNewMaze() {
     const int bufferSize = 4096;
     char buffer[bufferSize];
     int index = 0;
+    int numBanks = 0; // Count the number of banks
+    for (int i = 0; i < ROWS; i++) {
+        for (int j = 0; j < 2 * COLS - 3; j++) {
+            // Count the number of banks
+            if (mirroredmaze[i][j] == bank) {
+                numBanks++;
+            }
+        }
+    }
 
+    
     for (int i = 0; i < ROWS; i++) {
         for (int j = 0; j < 2 * COLS - 3; j++) {
             if (mirroredmaze[i][j] == wall) {
@@ -82,11 +96,17 @@ void printNewMaze() {
                 index += sprintf(buffer + index, "\033[0;33m%c\033[0m ", mirroredmaze[i][j]);
             }else if (mirroredmaze[i][j]==cop){
                 index += sprintf(buffer + index, "\033[0;34m%c\033[0m ", mirroredmaze[i][j]);
+            }else if (mirroredmaze[i][j]==ammo){
+                index += sprintf(buffer + index, "\033[0;35m%c\033[0m ", mirroredmaze[i][j]);
+            }else if (mirroredmaze[i][j]==player){
+                index += sprintf(buffer + index, "\033[0;37m%c\033[0m ", mirroredmaze[i][j]);
             }
-             else {
+            else if (numBanks == 0) {
+                index += sprintf(buffer + index, "\033[0;32m%c\033[0m ", mirroredmaze[i][j]);
+            }
+            else {
                 index += sprintf(buffer + index, "%c ", mirroredmaze[i][j]);
             }
-            
 
             if (index >= bufferSize - 100) {
                 fwrite(buffer, 1, index, stdout);
@@ -95,6 +115,11 @@ void printNewMaze() {
         }
         buffer[index++] = '\n';
     }
+    index += sprintf(buffer + index, "Bombs: ");
+    for (int i = 0; i < currBombs; i++) {
+        buffer[index++] = '#';
+    }
+    buffer[index++] = '\n';
     if (index > 0) {
         fwrite(buffer, 1, index, stdout);
     }
@@ -201,6 +226,14 @@ void gen_new_maze() {
         rand_col = (COLS - 2) + rand() % ((2 * COLS - 4) - (COLS - 2) + 1);
     }
     mirroredmaze[rand_row][rand_col] = bank;
+
+        int rand_row_ammo, rand_col_ammo;
+    do {
+        rand_row_ammo = rand() % ROWS;
+        rand_col_ammo = rand() % (2 * COLS - 3);
+    } while (mirroredmaze[rand_row_ammo][rand_col_ammo] != ' ');
+
+    mirroredmaze[rand_row_ammo][rand_col_ammo] = ammo;
 }
 
 void placeBombBehindPlayer() {
@@ -223,14 +256,15 @@ void placeBombBehindPlayer() {
             break;
     }
 
-    if (mirroredmaze[bombX][bombY] != wall && mirroredmaze[bombX][bombY] != portal) {
+    if (mirroredmaze[bombX][bombY] != wall && mirroredmaze[bombX][bombY] != portal && currBombs>0 && mirroredmaze[bombX][bombY] != bomb) {
+        currBombs--;
         if (mirroredmaze[bombX][bombY] == cop) {
             // Detonate the bomb immediately if a cop is present
             detonateBomb(bombX, bombY);
         } else {
             mirroredmaze[bombX][bombY] = bomb;
 
-            // Add the bomb to the list
+            // Add the bomb to the listf
             bombs[num_bombs].x = bombX;
             bombs[num_bombs].y = bombY;
             bombs[num_bombs].placed_time = time(NULL);
@@ -293,7 +327,11 @@ void updateMaze() {
         spawnCop(currentX,currentY);
 
     }
-    mirroredmaze[currentX][currentY] = '#';
+    if (mirroredmaze[currentX][currentY] == ammo) {
+        currBombs += 2;
+    }
+
+    mirroredmaze[currentX][currentY] = player;
 }
 void checkCopSpawnTimer()
 {
@@ -304,6 +342,7 @@ void checkCopSpawnTimer()
         if(elapsed_time >= COP_TIMER && cops[i].has_spawned != 1)
         {
             cops[i].has_spawned = 1;
+
             mirroredmaze[cops[i].x][cops[i].y] = cop;
 
         }
@@ -488,7 +527,7 @@ int main() {
     srand((int)time(NULL)); // Seeding
     generateMaze(1, 1);
     gen_new_maze();
-    mirroredmaze[currentX][currentY] = '#';
+    mirroredmaze[currentX][currentY] = player;
    //system("cls");
     printNewMaze();
     score = 0;
@@ -509,7 +548,7 @@ int main() {
 
        switch (move) {
             case 'w':
-                if (mirroredmaze[currentX - 1][currentY] == ' ' || mirroredmaze[currentX - 1][currentY] == bank || mirroredmaze[currentX - 1][currentY] == portal) {
+                if (mirroredmaze[currentX - 1][currentY] == ' ' || mirroredmaze[currentX - 1][currentY] == bank || mirroredmaze[currentX - 1][currentY] == portal || mirroredmaze[currentX - 1][currentY] == ammo) {
                     mirroredmaze[currentX][currentY] = ' ';
                     currentX = currentX - 1;
                     
@@ -520,7 +559,7 @@ int main() {
                 
                 break;
             case 's':
-                if (mirroredmaze[currentX + 1][currentY] == ' ' || mirroredmaze[currentX + 1][currentY] == bank || mirroredmaze[currentX + 1][currentY] == portal) {
+                if (mirroredmaze[currentX + 1][currentY] == ' ' || mirroredmaze[currentX + 1][currentY] == bank || mirroredmaze[currentX + 1][currentY] == portal || mirroredmaze[currentX + 1][currentY] == ammo) {
                     mirroredmaze[currentX][currentY] = ' ';
                     currentX = currentX + 1;
                     //updateMaze();
@@ -532,7 +571,7 @@ int main() {
                 
                 break;
             case 'a':
-                if (mirroredmaze[currentX][currentY - 1] == ' ' || mirroredmaze[currentX][currentY - 1] == bank || mirroredmaze[currentX][currentY - 1] == portal) {
+                if (mirroredmaze[currentX][currentY - 1] == ' ' || mirroredmaze[currentX][currentY - 1] == bank || mirroredmaze[currentX][currentY - 1] == portal || mirroredmaze[currentX][currentY - 1] == ammo) {
                     mirroredmaze[currentX][currentY] = ' ';
                     currentY = currentY - 1;
                     if (currentY <= 0) {
@@ -547,7 +586,7 @@ int main() {
                
                 break;
             case 'd':
-                if (mirroredmaze[currentX][currentY + 1] == ' ' || mirroredmaze[currentX][currentY + 1] == bank || mirroredmaze[currentX][currentY + 1] == portal) {
+                if (mirroredmaze[currentX][currentY + 1] == ' ' || mirroredmaze[currentX][currentY + 1] == bank || mirroredmaze[currentX][currentY + 1] == portal || mirroredmaze[currentX][currentY + 1] == ammo) {
                     mirroredmaze[currentX][currentY] = ' ';
                     currentY = currentY + 1;
                     if (currentY >= 2 * COLS - 4) {
@@ -563,9 +602,6 @@ int main() {
                 break;
             case 'b':
                 placeBombBehindPlayer();
-                //updateMaze();
-                        //system("cls");
-                        //printNewMaze();
                 validmove = 1;
                 break;
             case 27: // Escape key
@@ -580,7 +616,7 @@ int main() {
         checkBombTimers();
             switch (last_move) {
                 case 'w':
-                    if (mirroredmaze[currentX - 1][currentY] == ' ' || mirroredmaze[currentX - 1][currentY] == bank || mirroredmaze[currentX - 1][currentY] == portal) {
+                    if (mirroredmaze[currentX - 1][currentY] == ' ' || mirroredmaze[currentX - 1][currentY] == bank || mirroredmaze[currentX - 1][currentY] == portal || mirroredmaze[currentX - 1][currentY] == ammo) {
                         mirroredmaze[currentX][currentY] = ' ';
                         currentX = currentX - 1;
                         //updateMaze();
@@ -589,7 +625,7 @@ int main() {
                     }
                     break;
                 case 's':
-                    if (mirroredmaze[currentX + 1][currentY] == ' ' || mirroredmaze[currentX + 1][currentY] == bank || mirroredmaze[currentX + 1][currentY] == portal) {
+                    if (mirroredmaze[currentX + 1][currentY] == ' ' || mirroredmaze[currentX + 1][currentY] == bank || mirroredmaze[currentX + 1][currentY] == portal || mirroredmaze[currentX + 1][currentY] == ammo) {
                         mirroredmaze[currentX][currentY] = ' ';
                         currentX = currentX + 1;
                        // updateMaze();
@@ -598,7 +634,7 @@ int main() {
                     }
                     break;
                 case 'a':
-                    if (mirroredmaze[currentX][currentY - 1] == ' ' || mirroredmaze[currentX][currentY - 1] == bank || mirroredmaze[currentX][currentY - 1] == portal) {
+                    if (mirroredmaze[currentX][currentY - 1] == ' ' || mirroredmaze[currentX][currentY - 1] == bank || mirroredmaze[currentX][currentY - 1] == portal || mirroredmaze[currentX][currentY - 1] == ammo) {
                         mirroredmaze[currentX][currentY] = ' ';
                         currentY = currentY - 1;
                         if (currentY <= 0) {
@@ -610,7 +646,7 @@ int main() {
                     }
                     break;
                 case 'd':
-                    if (mirroredmaze[currentX][currentY + 1] == ' ' || mirroredmaze[currentX][currentY + 1] == bank || mirroredmaze[currentX][currentY + 1] == portal) {
+                    if (mirroredmaze[currentX][currentY + 1] == ' ' || mirroredmaze[currentX][currentY + 1] == bank || mirroredmaze[currentX][currentY + 1] == portal || mirroredmaze[currentX][currentY + 1] == ammo) {
                         mirroredmaze[currentX][currentY] = ' ';
                         currentY = currentY + 1;
                         if (currentY >= 2 * COLS - 4) {
