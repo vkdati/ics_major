@@ -9,6 +9,7 @@
 #include <math.h>
 #include <limits.h>
 #include <float.h>
+#include <stdbool.h>
 
 #define ROWS 21
 #define COLS 21
@@ -16,7 +17,7 @@
 #define BOMB_TIMER 3 // Time in seconds before bomb detonates
 #define MAX_COPS 4 //max num of cops
 #define COP_TIMER 1.5 //time in seconds before cop spawns 
-
+#define MAX_LEN 9999
 
 
 char wall = 254;
@@ -25,6 +26,7 @@ char portal = 177;
 char bomb = 'o';
 char maze[ROWS][COLS];
 char mirroredmaze[ROWS][2 * COLS - 3];
+bool visited[ROWS][2*COLS-3]={false};
 int score;
 int currentX = 1;
 int currentY = 1;
@@ -32,7 +34,8 @@ char input; // Global variable to store input
 char last_move;
 int tick = 0; //debug, remove later
 char cop = 88;
-char ammo = 235;
+int path_minus_one = 0;
+bool pathFind(int x_cop, int y_cop, bool visited[ROWS][2*COLS-3],int x,int y);char ammo = 235;
 char player = 258;
 int currBombs = 4;
 
@@ -50,7 +53,12 @@ typedef struct{
     char dir;
     char prevdir;
 }Cop;
-
+typedef struct{
+    int x;
+    int y;
+    
+}node;
+node cop_here;
 Cop cops[MAX_COPS];
 int num_cops = 0;
 Bomb bombs[MAX_BOMBS];
@@ -352,7 +360,91 @@ void checkCopSpawnTimer()
         }
     }
 }
-float distanceFromPlayer(int x, int y)
+void copChaseAI(int i)
+{
+    mirroredmaze[cops[i].x][cops[i].y]=' ';
+    memset(visited,false,sizeof(visited));
+    pathFind(cops[i].x,cops[i].y,visited,currentX,currentY);
+    cops[i].x = cop_here.x;
+    cops[i].y = cop_here.y;
+    mirroredmaze[cops[i].x][cops[i].y]=cop;
+    printf("player position %d %d",currentX,currentY);
+    printf("currently targetting %d %d\n",cops[i].x,cops[i].y);
+    printf("lolmao");//debug
+
+}
+bool pathFind(int x_cop, int y_cop, bool visited[ROWS][2*COLS-3],int x,int y)
+{
+   // printf("%d %d\n",x,y);
+    if(x==x_cop&&y==y_cop)
+    {
+        printf("success"); //debug
+        //cop_here.x = x;
+        //cop_here.y = y;
+      //  printf("currently targetting %d %d\n",x,y);
+        path_minus_one = 1;
+        return true;
+    }
+    if(x>=ROWS||y>=2*COLS-3)
+    {
+        return false;
+    }
+    if(x<=0||y<=0)
+    {
+        return false;
+    }
+    if(visited[x][y]==true)
+    {
+        return false;
+    }
+    if(mirroredmaze[x][y]==wall||mirroredmaze[x][y]==portal)
+    {
+        return false;
+    }
+    visited[x][y]=true;
+    if(pathFind(x_cop,y_cop,visited,x+1,y)==true)
+    {
+        if(path_minus_one==1)
+        {
+            cop_here.x = x;
+            cop_here.y = y;
+            path_minus_one =0;
+        }
+        return true;
+    }
+    if(pathFind(x_cop,y_cop,visited,x-1,y)==true)
+    {
+        if(path_minus_one==1)
+        {
+            cop_here.x = x;
+            cop_here.y = y;
+            path_minus_one =0;
+        }
+        return true;
+    }
+    if (pathFind(x_cop,y_cop,visited,x,y+1)==true)
+    {
+        if(path_minus_one==1)
+        {
+            cop_here.x = x;
+            cop_here.y = y;
+            path_minus_one =0;
+        }
+        return true;
+    }
+    if(pathFind(x_cop,y_cop,visited,x,y-1)==true)
+    {
+        if(path_minus_one==1)
+        {
+            cop_here.x = x;
+            cop_here.y = y;
+            path_minus_one =0;
+        }
+        return true;
+    }
+    return false;
+}
+/*float distanceFromPlayer(int x, int y)
 {
     int xsquar = (x - currentX)*(x - currentX);
     int ysquar = (y - currentY)*(y - currentY);
@@ -503,7 +595,7 @@ void copChaseAI(int i) {
 
     cops[i].prevdir = cops[i].dir;
 }
-
+*/
 void checkBombTimers() {
     time_t current_time = time(NULL);
     for (int i = 0; i < num_bombs; i++) {
