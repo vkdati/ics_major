@@ -367,7 +367,8 @@ void copChaseAI(int i)
     pathFind(cops[i].x,cops[i].y,visited,currentX,currentY);
     cops[i].x = cop_here.x;
     cops[i].y = cop_here.y;
-    mirroredmaze[cops[i].x][cops[i].y]=cop;
+    if(mirroredmaze[cops[i].x][cops[i].y]!=bank){
+    mirroredmaze[cops[i].x][cops[i].y]=cop;}
     printf("player position %d %d",currentX,currentY);
     printf("currently targetting %d %d\n",cops[i].x,cops[i].y);
     printf("lolmao");//debug
