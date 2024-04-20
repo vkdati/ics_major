@@ -362,7 +362,8 @@ void checkCopSpawnTimer()
 }
 void copChaseAI(int i)
 {
-    mirroredmaze[cops[i].x][cops[i].y]=' ';
+     if(mirroredmaze[cops[i].x][cops[i].y]!=bank){
+    mirroredmaze[cops[i].x][cops[i].y]=' ';}
     memset(visited,false,sizeof(visited));
     pathFind(cops[i].x,cops[i].y,visited,currentX,currentY);
     cops[i].x = cop_here.x;
@@ -373,7 +374,7 @@ void copChaseAI(int i)
         mirroredmaze[cops[i].x][cops[i].y]=' ';
         
     }
-    if(mirroredmaze[cops[i].x][cops[i].y]!=bank){
+    if(mirroredmaze[cops[i].x][cops[i].y]!=bank){ 
     mirroredmaze[cops[i].x][cops[i].y]=cop;}
    
     printf("player position %d %d",currentX,currentY);
@@ -420,7 +421,7 @@ bool pathFind(int x_cop, int y_cop, bool visited[ROWS][2*COLS-3],int x,int y)
         }
         return true;
     }
-    if(pathFind(x_cop,y_cop,visited,x-1,y)==true)
+    if (pathFind(x_cop,y_cop,visited,x,y+1)==true)
     {
         if(path_minus_one==1)
         {
@@ -430,7 +431,7 @@ bool pathFind(int x_cop, int y_cop, bool visited[ROWS][2*COLS-3],int x,int y)
         }
         return true;
     }
-    if (pathFind(x_cop,y_cop,visited,x,y+1)==true)
+    if(pathFind(x_cop,y_cop,visited,x-1,y)==true)
     {
         if(path_minus_one==1)
         {
@@ -452,158 +453,6 @@ bool pathFind(int x_cop, int y_cop, bool visited[ROWS][2*COLS-3],int x,int y)
     }
     return false;
 }
-/*float distanceFromPlayer(int x, int y)
-{
-    int xsquar = (x - currentX)*(x - currentX);
-    int ysquar = (y - currentY)*(y - currentY);
-    float distance = sqrt(xsquar + ysquar);
-    
-    //printf("%f\n",distance); //debug
-    return distance;
-
-}
-char dirToMove(int i)
-{
-
-    float distw = distanceFromPlayer(cops[i].x-1,cops[i].y);
-    float dists = distanceFromPlayer(cops[i].x+1,cops[i].y);
-    float dista = distanceFromPlayer(cops[i].x,cops[i].y-1);
-    float distd = distanceFromPlayer(cops[i].x,cops[i].y+1);
-        if (mirroredmaze[cops[i].x - 1][cops[i].y] == wall ) {
-                    distw = 3.402823466e+38F;
-                }
-                
-                if (mirroredmaze[cops[i].x + 1][cops[i].y] == wall ) {
-                    
-                    dists = 3.402823466e+38F;
-                }
-                
-                
-                if (mirroredmaze[cops[i].x][cops[i].y - 1] == wall) {
-                    dista = 3.402823466e+38F;
-                }
-               
-               
-                if (mirroredmaze[cops[i].x][cops[i].y + 1] == wall ) {
-                    
-                   distd = 3.402823466e+38F;
-                }
-    float min = distw; //fixed the bug lmfao
-    char min_char = 'w';
-    
-    if (dists < min) {
-        min = dists;
-        min_char = 's';
-    }
-    if (dista < min) {
-        min = dista;
-        min_char = 'a';
-    }
-    if (distd < min) {
-        min = distd;
-        min_char = 'd';
-    }
-   // printf("%d %c",min,min_char); //debiug
-    return min_char;
-
-}
-void copChaseAI(int i) {
-    int hasmoved = 0;
-    cops[i].dir = dirToMove(i);
-
-    int nextX = cops[i].x, nextY = cops[i].y;
-    switch (cops[i].dir) {
-        case 'w':
-            nextX--;
-            break;
-        case 's': 
-            nextX++;
-            break;
-        case 'a':
-            nextY--;
-            break;
-        case 'd':
-            nextY++;
-            break;
-    }
-
-    if (mirroredmaze[nextX][nextY] == bomb) {
-        detonateBomb(nextX, nextY);
-        mirroredmaze[nextX][nextY] = ' ';
-    }
-
-    // Proceed with the cop movement
-    if ((cops[i].dir == 'w' && cops[i].prevdir == 's') || (cops[i].dir == 's' && cops[i].prevdir == 'w') || (cops[i].dir == 'a' && cops[i].prevdir == 'd') || (cops[i].dir == 'd' && cops[i].prevdir == 'a')) {
-        switch (cops[i].prevdir) {
-            case 'w':
-                if (mirroredmaze[cops[i].x - 1][cops[i].y] == ' ' || mirroredmaze[cops[i].x - 1][cops[i].y] == bank || mirroredmaze[cops[i].x - 1][cops[i].y] == portal) {
-                    cops[i].dir = cops[i].prevdir;
-                }
-                break;
-            case 's':
-                if (mirroredmaze[cops[i].x + 1][cops[i].y] == ' ' || mirroredmaze[cops[i].x + 1][cops[i].y] == bank || mirroredmaze[cops[i].x + 1][cops[i].y] == portal) {
-                    cops[i].dir = cops[i].prevdir;
-                }
-                break;
-            case 'a':
-                if (mirroredmaze[cops[i].x][cops[i].y - 1] == ' ' || mirroredmaze[cops[i].x][cops[i].y - 1] == bank || mirroredmaze[cops[i].x][cops[i].y - 1] == portal) {
-                    cops[i].dir = cops[i].prevdir;
-                }
-                break;
-            case 'd':
-                if (mirroredmaze[cops[i].x][cops[i].y + 1] == ' ' || mirroredmaze[cops[i].x][cops[i].y + 1] == bank || mirroredmaze[cops[i].x][cops[i].y + 1] == portal) {
-                    cops[i].dir = cops[i].prevdir;
-                }
-        }
-    }
-
-    switch (cops[i].dir) {
-        case 'w':
-            if (mirroredmaze[cops[i].x - 1][cops[i].y] == ' ' || mirroredmaze[cops[i].x - 1][cops[i].y] == bank || mirroredmaze[cops[i].x - 1][cops[i].y] == portal) {
-                mirroredmaze[cops[i].x][cops[i].y] = ' ';
-                cops[i].x = cops[i].x - 1;
-                hasmoved = 1;
-                mirroredmaze[cops[i].x][cops[i].y] = cop;
-            }
-            break;
-        case 's':
-            if (mirroredmaze[cops[i].x + 1][cops[i].y] == ' ' || mirroredmaze[cops[i].x + 1][cops[i].y] == bank || mirroredmaze[cops[i].x + 1][cops[i].y] == portal) {
-                mirroredmaze[cops[i].x][cops[i].y] = ' ';
-                cops[i].x = cops[i].x + 1;
-                hasmoved = 1;
-                mirroredmaze[cops[i].x][cops[i].y] = cop;
-            }
-            break;
-        case 'a':
-            if (mirroredmaze[cops[i].x][cops[i].y - 1] == ' ' || mirroredmaze[cops[i].x][cops[i].y - 1] == bank || mirroredmaze[cops[i].x][cops[i].y - 1] == portal) {
-                mirroredmaze[cops[i].x][cops[i].y] = ' ';
-                cops[i].y = cops[i].y - 1;
-                if (cops[i].y <= 0) {
-                    cops[i].y = 2 * COLS - 5; // To move across border correctly
-                }
-                hasmoved = 1;
-                mirroredmaze[cops[i].x][cops[i].y] = cop;
-            }
-            break;
-        case 'd':
-            if (mirroredmaze[cops[i].x][cops[i].y + 1] == ' ' || mirroredmaze[cops[i].x][cops[i].y + 1] == bank || mirroredmaze[cops[i].x][cops[i].y + 1] == portal) {
-                mirroredmaze[cops[i].x][cops[i].y] = ' ';
-                cops[i].y = cops[i].y + 1;
-                if (cops[i].y >= 2 * COLS - 4) {
-                    cops[i].y = 1;
-                }
-                hasmoved = 1;
-                mirroredmaze[cops[i].x][cops[i].y] = cop;
-            }
-    }
-
-    if (hasmoved == 0) {
-        // Handle the case when the cop cannot move
-    }
-
-    cops[i].prevdir = cops[i].dir;
-}
-*/
 void checkBombTimers() {
     time_t current_time = time(NULL);
     for (int i = 0; i < num_bombs; i++) {
