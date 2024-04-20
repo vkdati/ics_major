@@ -10,7 +10,7 @@
 #include <limits.h>
 #include <float.h>
 #include <stdbool.h>
-
+// bugs : still deleting banks, and not dying to bombs
 #define ROWS 21
 #define COLS 21
 #define MAX_BOMBS 100 // Maximum number of bombs
@@ -354,7 +354,7 @@ void checkCopSpawnTimer()
             mirroredmaze[cops[i].x][cops[i].y] = cop;
 
         }
-        if(cops[i].has_spawned == 1)
+        if(cops[i].has_spawned == 1&&cops[i].x>0)
         {
             copChaseAI(i);
         }
@@ -367,8 +367,15 @@ void copChaseAI(int i)
     pathFind(cops[i].x,cops[i].y,visited,currentX,currentY);
     cops[i].x = cop_here.x;
     cops[i].y = cop_here.y;
+     if(mirroredmaze[cops[i].x][cops[i].y]==bomb)
+    {
+        detonateBomb(cops[i].x,cops[i].y);
+        mirroredmaze[cops[i].x][cops[i].y]=' ';
+        
+    }
     if(mirroredmaze[cops[i].x][cops[i].y]!=bank){
     mirroredmaze[cops[i].x][cops[i].y]=cop;}
+   
     printf("player position %d %d",currentX,currentY);
     printf("currently targetting %d %d\n",cops[i].x,cops[i].y);
     printf("lolmao");//debug
