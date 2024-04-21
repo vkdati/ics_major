@@ -334,16 +334,7 @@ void updateMaze() {
     if (mirroredmaze[currentX][currentY] == bank) {
         score++;
         spawnCop(currentX, currentY);
-        mirroredmaze[currentX][currentY] = ' ';
-        if (score == 4) { // Assuming there are 4 banks in total
-            // Reset score
-            score = 0;
-            // Regenerate maze
-            initializeMaze();
-            generateMaze(1, 1);
-            gen_new_maze();
-            mirroredmaze[currentX][currentY] = player;
-        }
+       
     }
     if (mirroredmaze[currentX][currentY] == ammo) {
         currBombs += 2;
@@ -629,24 +620,7 @@ int main() {
                         updateMaze();
                         system("cls");
                         printNewMaze();
-                        if (score == 4) {
-            printf("Congratulations! You have collected all the banks!\n");
-            printf("Restarting the game...\n");
-            Sleep(2000); // Pause for 2 seconds before restarting
-
-            // Reset score and regenerate maze
-            score = 0;
-            initializeMaze();
-            generateMaze(1, 1);
-            gen_new_maze();
-            mirroredmaze[currentX][currentY] = player;
-
-            // Reset other game variables if necessary
-
-            // Clear the screen and print the new maze
-            system("cls");
-            printNewMaze();
-        }
+                        
     }
 
 
