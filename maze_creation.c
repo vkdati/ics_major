@@ -41,7 +41,10 @@ int currBombs = 4;
 int lives = 4;
 int color_picker = 0;
 char color_str[10];
+<<<<<<< HEAD
 char life = 291;
+=======
+>>>>>>> 605086cb385b4e2b609d03b900246c373db07773
 
 
 
@@ -150,7 +153,11 @@ void printNewMaze() {
     index += sprintf(buffer + index,"Lives: ");
     for(int i = 0;i<lives;i++)
     {
+<<<<<<< HEAD
         buffer[index++] = life;
+=======
+        buffer[index++] = "#";
+>>>>>>> 605086cb385b4e2b609d03b900246c373db07773
     }
      buffer[index++] = '\n';
     if (index > 0) {
@@ -411,6 +418,11 @@ void copChaseAI(int i)
     if(mirroredmaze[cops[i].x][cops[i].y]!=bank){ 
     mirroredmaze[cops[i].x][cops[i].y]=cop;}
    
+<<<<<<< HEAD
+=======
+    printf("player position %d %d",currentX,currentY);
+    printf("currently targetting %d %d\n",cops[i].x,cops[i].y);
+>>>>>>> 605086cb385b4e2b609d03b900246c373db07773
     if (cops[i].x == currentX && cops[i].y == currentY) {
         lives--;
         currentX = 1;
@@ -418,7 +430,11 @@ void copChaseAI(int i)
         if(lives==0)
         {
         lives--;
+<<<<<<< HEAD
         gameOver();
+=======
+        printf("Game Over! You are out of lives!\n");
+>>>>>>> 605086cb385b4e2b609d03b900246c373db07773
         exit(0);
         }
         
