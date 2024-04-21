@@ -409,6 +409,7 @@ void copChaseAI(int i)
         currentY = 1;
         if(lives==0)
         {
+        lives--;
         printf("Game Over! You are out of lives!\n");
         exit(0);
         }
@@ -519,6 +520,24 @@ void newcity(int currentX, int currentY, char lastmove){
 }
 
 int main() {
+    system("cls");      
+    printf("######      ###      #      #    #   #          #    #    ######    #######   ######    #######\n");
+    printf("#    #     #   #     # #    #    #  #           #    #    #            #      #            #   \n");
+    printf("######    #     #    #  #   #    ##             ######    ######       #      ######       #   \n");
+    printf("#    #    #######    #   #  #    # #            #    #    #            #           #       #   \n");
+    printf("#    #    #     #    #    # #    #  #           #    #    #            #           #       #   \n");
+    printf("######    #     #    #     ##    #   #          #    #    ######    #######   ######       #   \n\n");
+    printf("This is the life! A bank robber in the 1930's, when those who relieved financial institutions of their moolah were hailed as heroes!\nAnd there are plenty of banks just ripe for the picking, several in each community and with your classy jalopy, getting from town to town is a lead-pipe cinch.\nBut there is one little problem, those coppers just don't seem to agree that hitting a bank is A-O.K., and they keep chasing you.\nLefty, get out the dynamite before those cops get us..");
+    printf("\n\npress any key to continue");
+    getch();
+    system("cls");
+    printf("Controls\n\n");
+    printf("'w-a-s-d' - movement controls to navigate the cities\n");
+    printf("'b' - Places a Bomb behind you\n\n");
+
+    printf("press any key to continue");
+    getch();
+    system("cls");
     tick = 0;
     initializeMaze();
     srand((int)time(NULL)); // Seeding
