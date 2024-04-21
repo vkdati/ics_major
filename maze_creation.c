@@ -11,8 +11,8 @@
 #include <float.h>
 #include <stdbool.h>
 
-#define ROWS 21
-#define COLS 21
+#define ROWS 15
+#define COLS 15
 #define MAX_BOMBS 100 // Maximum number of bombs
 #define BOMB_TIMER 3 // Time in seconds before bomb detonates
 #define MAX_COPS 4 //max num of cops
@@ -36,12 +36,29 @@ int tick = 0;
 char cop = 88;
 int path_minus_one = 0;
 bool pathFind(int x_cop, int y_cop, bool visited[ROWS][2*COLS-3],int x,int y);char ammo = 235;
-char player = 258;
+char player = 2;
 int currBombs = 4;
 int lives = 4;
 int color_picker = 0;
 char color_str[10];
-char life = 291;
+char life = 35;
+void initializeMaze();
+void printNewMaze();
+int isValidMove(int x, int y);int hasUnvisitedNeighbor(int x, int y);
+void shuffleDirections(int directions[], int size);
+void generateMaze(int x, int y);
+void gen_new_maze();
+void gameOver();
+void placeBombBehindPlayer();
+void detonateBomb(int x, int y);
+void spawnCop(int x, int y);
+void updateMaze();
+void checkCopSpawnTimer();
+void copChaseAI(int i);
+bool pathFind(int x_cop, int y_cop, bool visited[ROWS][2*COLS-3],int x,int y);
+void checkBombTimers();
+void newcity(int currentX, int currentY, char lastmove);
+
 
 
 
@@ -564,7 +581,7 @@ int main() {
         // Check bomb timers
         checkBombTimers();
         checkCopSpawnTimer();
-        Sleep(150);
+        Sleep(200);
         char move = input; // Get the input from the global variable
 
         // Variable to track whether the move was valid
