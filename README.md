@@ -4,11 +4,6 @@ README
 ICS - Minor Project - 
 THE 2048 GAME
 
-Name : Vasu Kodati
-Roll no. : B23EE1079
-Email : b23ee1079@iitj.ac.in
-
-
 Introduction:
 
 This project aims to implement the ‘2048’ game in C, whose goal is to merge tiles which contain the powers of two in a 4x4 grid and
@@ -53,7 +48,7 @@ Command Line user interface
 
 
 SPECIAL THANKS - 
-I would like to express my gratitude to Dr.Mayank Vatsa and all the teaching assistance of the ICS Course for their support and guidance during this project.
+We would like to express our gratitude to Dr.Mayank Vatsa and all the teaching assistance of the ICS Course for their support and guidance during this project.
 
 	
 
